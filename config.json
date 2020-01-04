@@ -1,0 +1,15 @@
+{
+	"sources": [
+		"/home/jlewallen/dropbox/photos/exported/201912"
+	],
+	"library": {
+		"path": "/home/jlewallen/dropbox/photos/library"
+	},
+	"albums": [
+		{
+			"title": "france 2019",
+			"path": "2019_france",
+			"tag": "trips|france"
+		}
+	]
+}
