@@ -1,9 +1,10 @@
 ---
 title: france 2019
 type: albums
-weight: 2
-bookToc: false
+date: "2019-12-29 10:46:29 +0000 UTC"
 ---
+
+A short trip to France to visit Carla's family for the holidays.
 
 {{< gallery >}}
 	{{< figure src="/albums/2019_france/200/DSC00102.jpg" link="/albums/2019_france/large/DSC00102.jpg" size="1600x1067" >}}

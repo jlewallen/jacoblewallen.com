@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"encoding/json"
 	"encoding/xml"
@@ -23,15 +24,14 @@ import (
 )
 
 type AlbumFile struct {
-	Name         string
-	OriginalPath string
-
+	Name          string
+	OriginalPath  string
+	CreatedAt     time.Time
 	PhotoPath     string
 	ThumbnailPath string
-
-	Xmp      *XmpFile
-	Original *ImageMeta
-	Large    *ImageMeta
+	Xmp           *XmpFile
+	Original      *ImageMeta
+	Large         *ImageMeta
 }
 
 const (
@@ -45,6 +45,7 @@ var (
 type Album struct {
 	Config *AlbumConfig
 	Files  []*AlbumFile
+	Date   time.Time
 }
 
 type CachedImage struct {
@@ -90,6 +91,7 @@ func (c *Cache) Fill(o *Configuration) error {
 		album := &Album{
 			Config: albumCfg,
 			Files:  make([]*AlbumFile, 0),
+			Date:   time.Now(),
 		}
 
 		c.AllAlbums = append(c.AllAlbums, album)
@@ -130,6 +132,7 @@ func (c *Cache) AddAlbumFile(af *AlbumFile) error {
 		if album != nil {
 			log.Printf("adding to album '%s' (%s) : %v", album.Config.Title, hs, af.PhotoPath)
 			album.Files = append(album.Files, af)
+			album.Date = af.CreatedAt
 			break
 		}
 	}
@@ -275,9 +278,21 @@ func (g *Generator) IncludeImage(path string) error {
 		log.Printf("include: %v %v %v %v", path, originalMeta, xmpPath, xmp.Rdf.Description.HierarchicalSubjects.Subjects)
 	}
 
+	createdAt := time.Time{}
+	if xmp.Rdf.Description.DateTimeOriginal != "" {
+		// 2019:12:29 10:46:29
+		dto, err := time.Parse("2006:01:02 15:04:05", xmp.Rdf.Description.DateTimeOriginal)
+		if err != nil {
+			return err
+		}
+
+		createdAt = dto
+	}
+
 	albumFile := &AlbumFile{
 		OriginalPath:  path,
 		PhotoPath:     name,
+		CreatedAt:     createdAt,
 		ThumbnailPath: filepath.Join(fmt.Sprintf("%d", MainThumbnailSize), name),
 		Name:          name,
 		Original:      originalMeta,

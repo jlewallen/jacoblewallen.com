@@ -1,8 +1,7 @@
 ---
 title: [[ .Config.Title ]]
 type: albums
-weight: 2
-bookToc: false
+date: "[[ .Date ]]"
 ---
 
 {{< gallery >}}
