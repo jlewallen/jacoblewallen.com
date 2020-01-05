@@ -24,22 +24,17 @@ import (
 )
 
 type AlbumFile struct {
-	Name          string
-	OriginalPath  string
-	CreatedAt     time.Time
-	PhotoPath     string
-	ThumbnailPath string
-	Xmp           *XmpFile
-	Original      *ImageMeta
-	Large         *ImageMeta
+	Name         string
+	OriginalPath string
+	CreatedAt    time.Time
+	PhotoPath    string
+	Xmp          *XmpFile
+	Original     *ImageMeta
+	Large        *ImageMeta
 }
 
-const (
-	MainThumbnailSize = 200
-)
-
 var (
-	ThumbnailSizes = []uint{140, 200, 220, 240, 260}
+	ThumbnailSizes = []uint{200}
 )
 
 type Album struct {
@@ -124,20 +119,6 @@ func (c *Cache) FindXmp(name string) (string, error) {
 		return c.XmpsByBaseName[base], nil
 	}
 	return "", fmt.Errorf("unable to find xmp for: %s", name)
-}
-
-func (c *Cache) AddAlbumFile(af *AlbumFile) error {
-	for _, hs := range af.Xmp.Rdf.Description.HierarchicalSubjects.Subjects {
-		album := c.AlbumsByTag[hs]
-		if album != nil {
-			log.Printf("adding to album '%s' (%s) : %v", album.Config.Title, hs, af.PhotoPath)
-			album.Files = append(album.Files, af)
-			album.Date = af.CreatedAt
-			break
-		}
-	}
-
-	return nil
 }
 
 type Subjects struct {
@@ -227,20 +208,20 @@ func getImageMeta(path string) (im *ImageMeta, err error) {
 }
 
 type Generator struct {
-	Cache *Cache
+	Cache      *Cache
+	AlbumsRoot string
 }
 
-func NewGenerator(configPath string) (g *Generator, err error) {
+func NewGenerator(configPath, albumsRoot string) (g *Generator, err error) {
 	g = &Generator{
-		Cache: &Cache{},
+		Cache:      &Cache{},
+		AlbumsRoot: albumsRoot,
 	}
 
 	cfg, err := g.OpenConfiguration(configPath)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Printf("library: %+v", cfg.Library)
 
 	err = g.Cache.Fill(cfg)
 	if err != nil {
@@ -289,18 +270,26 @@ func (g *Generator) IncludeImage(path string) error {
 		createdAt = dto
 	}
 
-	albumFile := &AlbumFile{
-		OriginalPath:  path,
-		PhotoPath:     name,
-		CreatedAt:     createdAt,
-		ThumbnailPath: filepath.Join(fmt.Sprintf("%d", MainThumbnailSize), name),
-		Name:          name,
-		Original:      originalMeta,
-		Large:         CalculateNewSizes(originalMeta, 1600, 1200, "large"),
-		Xmp:           xmp,
-	}
+	for _, hs := range xmp.Rdf.Description.HierarchicalSubjects.Subjects {
+		album := g.Cache.AlbumsByTag[hs]
+		if album != nil {
+			af := &AlbumFile{
+				OriginalPath: path,
+				PhotoPath:    name,
+				CreatedAt:    createdAt,
+				Name:         name,
+				Original:     originalMeta,
+				Large:        CalculateNewSizes(g.AlbumsRoot, originalMeta, 1600, 1200, "large"),
+				Xmp:          xmp,
+			}
 
-	g.Cache.AddAlbumFile(albumFile)
+			log.Printf("adding to album '%s' (%s) : %v", album.Config.Title, hs, af.PhotoPath)
+
+			album.Files = append(album.Files, af)
+			album.Date = af.CreatedAt
+			break
+		}
+	}
 
 	return nil
 }
@@ -388,19 +377,18 @@ func (g *Generator) SaveJpeg(image image.Image, path string) error {
 	return nil
 }
 
-func ResizedPath(path string, size string) string {
-	dir := filepath.Dir(path)
-	name := filepath.Base(path)
-	return filepath.Join(dir, size, name)
+func ResizedPath(albumRoot, original string, size string) string {
+	name := filepath.Base(original)
+	return filepath.Join(albumRoot, size, name)
 }
 
-func ThumbnailPath(path string, size uint) string {
-	return ResizedPath(path, fmt.Sprintf("%d", size))
+func ThumbnailPath(albumRoot, original string, size uint) string {
+	return ResizedPath(albumRoot, original, fmt.Sprintf("%d", size))
 }
 
-func (g *Generator) HasAllThumbnails(path string, sizes []uint) bool {
+func (g *Generator) HasAllThumbnails(albumRoot, original string, sizes []uint) bool {
 	for _, size := range sizes {
-		tp := ThumbnailPath(path, size)
+		tp := ThumbnailPath(albumRoot, original, size)
 		if _, err := os.Stat(tp); os.IsNotExist(err) {
 			return false
 		}
@@ -409,20 +397,20 @@ func (g *Generator) HasAllThumbnails(path string, sizes []uint) bool {
 	return true
 }
 
-func (g *Generator) Thumbnails(path string, sizes []uint) error {
-	if g.HasAllThumbnails(path, sizes) {
+func (g *Generator) Thumbnails(albumRoot, original string, sizes []uint) error {
+	if g.HasAllThumbnails(albumRoot, original, sizes) {
 		return nil
 	}
 
-	original, err := g.Cache.Load(path)
+	originalImage, err := g.Cache.Load(original)
 	if err != nil {
 		return err
 	}
 
 	for _, size := range sizes {
-		tp := ThumbnailPath(path, size)
+		tp := ThumbnailPath(albumRoot, original, size)
 		if _, err := os.Stat(tp); os.IsNotExist(err) {
-			err := g.Thumbnail(original, size, tp)
+			err := g.Thumbnail(originalImage, size, tp)
 			if err != nil {
 				return err
 			}
@@ -473,7 +461,7 @@ func calculateScalingFactors(width, height uint, oldWidth, oldHeight float64) (s
 	return
 }
 
-func CalculateNewSizes(original *ImageMeta, maxX, maxY uint, name string) *ImageMeta {
+func CalculateNewSizes(albumsRoot string, original *ImageMeta, maxX, maxY uint, name string) *ImageMeta {
 	newX := uint(original.Dx)
 	newY := uint(original.Dy)
 
@@ -498,31 +486,31 @@ func CalculateNewSizes(original *ImageMeta, maxX, maxY uint, name string) *Image
 	}
 
 	return &ImageMeta{
-		Path: ResizedPath(original.Path, name),
+		Path: ResizedPath(albumsRoot, original.Path, name),
 		Dx:   newX,
 		Dy:   newY,
 	}
 }
 
-func (g *Generator) ResizePhoto(path string, newSize *ImageMeta) error {
+func (g *Generator) ResizePhoto(original string, newSize *ImageMeta) error {
 	if _, err := os.Stat(newSize.Path); !os.IsNotExist(err) {
 		return nil
 	}
 
-	log.Printf("resizing '%s' (%d x %d)", path, newSize.Dx, newSize.Dy)
+	log.Printf("resizing '%s' (%d x %d)", original, newSize.Dx, newSize.Dy)
 
-	original, err := g.Cache.Load(path)
+	originalImage, err := g.Cache.Load(original)
 	if err != nil {
 		return err
 	}
 
 	resizer := nfnt.NewDefaultResizer()
-	resized := resizer.Resize(original, newSize.Dx, newSize.Dy)
+	resizedImage := resizer.Resize(originalImage, newSize.Dx, newSize.Dy)
 	if err != nil {
 		return err
 	}
 
-	err = g.SaveJpeg(resized, newSize.Path)
+	err = g.SaveJpeg(resizedImage, newSize.Path)
 	if err != nil {
 		return err
 	}
@@ -530,15 +518,22 @@ func (g *Generator) ResizePhoto(path string, newSize *ImageMeta) error {
 	return nil
 }
 
-func (g *Generator) Resize(path string) error {
-	originalMeta, err := getImageMeta(path)
+func (g *Generator) Resize(albumRoot, original string) error {
+	originalMeta, err := getImageMeta(original)
 	if err != nil {
 		return err
 	}
 
-	newSize := CalculateNewSizes(originalMeta, 1600, 1200, "large")
+	largeSize := CalculateNewSizes(albumRoot, originalMeta, 1600, 1200, "large")
 
-	err = g.ResizePhoto(path, newSize)
+	err = g.ResizePhoto(original, largeSize)
+	if err != nil {
+		return err
+	}
+
+	smallSize := CalculateNewSizes(albumRoot, originalMeta, 320, 240, "small")
+
+	err = g.ResizePhoto(original, smallSize)
 	if err != nil {
 		return err
 	}
@@ -603,56 +598,36 @@ func (g *Generator) MarkDown(album *Album, path string, templateName string, ove
 	return nil
 }
 
-func (g *Generator) GenerateAlbum(album *Album, albumsRoot string) error {
-	albumImagesPath := filepath.Join(albumsRoot, album.Config.PathName)
+func (g *Generator) GenerateAlbum(album *Album) error {
+	log.Printf("generating '%s' (%d files) %s", album.Config.Title, len(album.Files), g.AlbumsRoot)
 
-	log.Printf("generating '%s' (%d files) %s", album.Config.Title, len(album.Files), albumImagesPath)
-
-	err := os.MkdirAll(albumImagesPath, 0755)
-	if err != nil {
-		return err
-	}
-
-	mdPath := filepath.Join(albumsRoot, fmt.Sprintf("%s.md", album.Config.PathName))
-	err = g.MarkDown(album, mdPath, "album.md.template", false)
+	mdPath := filepath.Join(g.AlbumsRoot, fmt.Sprintf("%s.md", album.Config.PathName))
+	err := g.MarkDown(album, mdPath, "album.md.template", false)
 	if err != nil {
 		return err
 	}
 
 	if false {
-		mdGalleryPath := filepath.Join(albumsRoot, fmt.Sprintf("%s.gallery.md", album.Config.PathName))
+		mdGalleryPath := filepath.Join(g.AlbumsRoot, fmt.Sprintf("%s.gallery.md", album.Config.PathName))
 		err = g.MarkDown(album, mdGalleryPath, "album.gallery.md.template", true)
 		if err != nil {
 			return err
 		}
 	}
 
-	jsonPath := filepath.Join(albumsRoot, fmt.Sprintf("%s.gallery.json", album.Config.PathName))
+	jsonPath := filepath.Join(g.AlbumsRoot, fmt.Sprintf("%s.gallery.json", album.Config.PathName))
 	err = g.Json(album, jsonPath)
 	if err != nil {
 		return err
 	}
 
 	for _, af := range album.Files {
-		destination := filepath.Join(albumsRoot, album.Config.PathName, af.PhotoPath)
-
-		if _, err := os.Stat(destination); os.IsNotExist(err) {
-			log.Printf("copying photo %s %s", af.OriginalPath, af.PhotoPath)
-
-			if false {
-				_, err := copyFile(af.OriginalPath, destination)
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		err = g.Thumbnails(destination, ThumbnailSizes)
+		err = g.Thumbnails(g.AlbumsRoot, af.OriginalPath, ThumbnailSizes)
 		if err != nil {
 			return err
 		}
 
-		err = g.Resize(destination)
+		err = g.Resize(g.AlbumsRoot, af.OriginalPath)
 		if err != nil {
 			return err
 		}
@@ -662,28 +637,28 @@ func (g *Generator) GenerateAlbum(album *Album, albumsRoot string) error {
 }
 
 type Options struct {
-	AlbumsPath string
+	AlbumsRoot string
 }
 
 func main() {
 	o := &Options{}
 
-	flag.StringVar(&o.AlbumsPath, "albums", "", "albums root directory")
+	flag.StringVar(&o.AlbumsRoot, "albums", "", "albums root directory")
 
 	flag.Parse()
 
-	if o.AlbumsPath == "" {
+	if o.AlbumsRoot == "" {
 		flag.Usage()
 		os.Exit(2)
 	}
 
-	g, err := NewGenerator("config.json")
+	g, err := NewGenerator("config.json", o.AlbumsRoot)
 	if err != nil {
 		panic(err)
 	}
 
 	for _, album := range g.Cache.AllAlbums {
-		err = g.GenerateAlbum(album, o.AlbumsPath)
+		err = g.GenerateAlbum(album)
 		if err != nil {
 			panic(err)
 		}

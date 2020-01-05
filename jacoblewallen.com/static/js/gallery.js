@@ -9,22 +9,22 @@ $(document).ready(function() {
 		const $figure = $(this),
 			$a = $figure.find('a'),
 			$img = $figure.find('img'),
-			$src = $a.attr('href'),
-			$title = $img.attr('alt'),
-			$msrc = $img.attr('src');
+			src = $a.attr('href'),
+			title = $img.attr('alt');
 
 		if (!$a.data('size')) {
 			console.log("no dimensions for " + $src);
 			return true;
 	   	}
 
-		const $size = $a.data('size').split('x');
+		const msrc = $a.data('msrc');
+		const size = $a.data('size').split('x');
 		const item = {
-			src: $src,
-			w: $size[0],
-			h: $size[1],
-			title: $title,
-			msrc: $msrc
+			src: src,
+			w: size[0],
+			h: size[1],
+			title: title,
+			msrc: msrc
 		};
 
 		const index = items.length;
