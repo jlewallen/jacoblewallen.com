@@ -639,9 +639,11 @@ func (g *Generator) GenerateAlbum(album *Album, albumsRoot string) error {
 		if _, err := os.Stat(destination); os.IsNotExist(err) {
 			log.Printf("copying photo %s %s", af.OriginalPath, af.PhotoPath)
 
-			_, err := copyFile(af.OriginalPath, destination)
-			if err != nil {
-				return err
+			if false {
+				_, err := copyFile(af.OriginalPath, destination)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
