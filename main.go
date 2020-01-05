@@ -546,13 +546,40 @@ func (g *Generator) Resize(path string) error {
 	return nil
 }
 
-func (g *Generator) MarkDown(album *Album, path string) error {
-	templateData, err := ioutil.ReadFile("album.md.template")
+func (g *Generator) Json(album *Album, path string) error {
+	data, err := json.Marshal(album)
 	if err != nil {
 		return err
 	}
 
-	template := texttemplate.New("album.md")
+	generatedFile, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+
+	defer generatedFile.Close()
+
+	_, err = generatedFile.Write(data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (g *Generator) MarkDown(album *Album, path string, templateName string, overwrite bool) error {
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		if !overwrite {
+			return nil
+		}
+	}
+
+	templateData, err := ioutil.ReadFile(templateName)
+	if err != nil {
+		return err
+	}
+
+	template := texttemplate.New(templateName)
 
 	template.Delims("[[", "]]")
 
@@ -578,7 +605,6 @@ func (g *Generator) MarkDown(album *Album, path string) error {
 
 func (g *Generator) GenerateAlbum(album *Album, albumsRoot string) error {
 	albumImagesPath := filepath.Join(albumsRoot, album.Config.PathName)
-	mdPath := filepath.Join(albumsRoot, fmt.Sprintf("%s.md", album.Config.PathName))
 
 	log.Printf("generating '%s' (%d files) %s", album.Config.Title, len(album.Files), albumImagesPath)
 
@@ -587,7 +613,22 @@ func (g *Generator) GenerateAlbum(album *Album, albumsRoot string) error {
 		return err
 	}
 
-	err = g.MarkDown(album, mdPath)
+	mdPath := filepath.Join(albumsRoot, fmt.Sprintf("%s.md", album.Config.PathName))
+	err = g.MarkDown(album, mdPath, "album.md.template", false)
+	if err != nil {
+		return err
+	}
+
+	if false {
+		mdGalleryPath := filepath.Join(albumsRoot, fmt.Sprintf("%s.gallery.md", album.Config.PathName))
+		err = g.MarkDown(album, mdGalleryPath, "album.gallery.md.template", true)
+		if err != nil {
+			return err
+		}
+	}
+
+	jsonPath := filepath.Join(albumsRoot, fmt.Sprintf("%s.gallery.json", album.Config.PathName))
+	err = g.Json(album, jsonPath)
 	if err != nil {
 		return err
 	}

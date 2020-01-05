@@ -1,11 +1,9 @@
 ---
-title: [[ .Config.Title ]]
 type: albums
+title: [[ .Config.Title ]]
 date: "[[ .Date ]]"
 ---
 
-{{< gallery >}}
-[[- range .Files]]
-	{{< figure src="/albums/[[ $.Config.PathName ]]/[[ .ThumbnailPath ]]" link="/albums/[[ $.Config.PathName ]]/large/[[ .Name ]]" size="[[ .Large.Dx ]]x[[ .Large.Dy ]]" >}}
-[[- end]]
-{{< /gallery >}}
+Automatically generated album.
+
+{{< render-gallery file="[[ .Config.PathName ]].gallery.json" >}}

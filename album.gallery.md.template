@@ -1,0 +1,8 @@
+---
+---
+
+{{< gallery >}}
+[[- range .Files]]
+	{{< figure src="/albums/[[ $.Config.PathName ]]/[[ .ThumbnailPath ]]" link="/albums/[[ $.Config.PathName ]]/large/[[ .Name ]]" size="[[ .Large.Dx ]]x[[ .Large.Dy ]]" >}}
+[[- end]]
+{{< /gallery >}}

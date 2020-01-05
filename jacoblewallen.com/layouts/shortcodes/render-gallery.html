@@ -1,0 +1,23 @@
+{{ $name := .Get "file" }}
+{{ $data := getJSON "content/albums/" $name }}
+
+<div class="gallery caption-position-{{ with .Get "caption-position" | default "bottom" }}{{.}}{{end}} caption-effect-{{ with .Get "caption-effect" | default "slide" }}{{.}}{{end}} hover-effect-{{ with .Get "hover-effect" | default "zoom" }}{{.}}{{end}} {{ if ne (.Get "hover-transition") "none" }}hover-transition{{end}}" itemscope itemtype="http://schema.org/ImageGallery">
+
+	{{ range $data.Files }}
+
+		{{ $thumb := (printf "/albums/%s/%s" $data.Config.path .ThumbnailPath) }}
+		{{ $large := (printf "/albums/%s/large/%s" $data.Config.path .Name) }}
+		{{ $size := (printf "%.0fx%.0f" .Large.Dx .Large.Dy) }}
+
+		<div class="box fancy-figure">
+		<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+			<div class="img" style="background-image: url('{{ $thumb | relURL }}');" data-size="{{ $size }}">
+				<img itemprop="thumbnail" src="{{ $thumb | relURL }}" />
+			</div>
+			<a href="{{ $large }}" itemprop="contentUrl" data-size="{{ $size }}"></a>
+		</figure>
+		</div>
+
+	{{ end }}
+
+</div>
