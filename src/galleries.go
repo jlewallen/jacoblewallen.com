@@ -578,7 +578,7 @@ func (g *Generator) MarkDown(album *Album, path string, templateName string, ove
 
 	template.Delims("[[", "]]")
 
-	template, err = template.Parse(string(templateData))
+	parsed, err := template.Parse(string(templateData))
 	if err != nil {
 		return err
 	}
@@ -590,7 +590,7 @@ func (g *Generator) MarkDown(album *Album, path string, templateName string, ove
 
 	defer generatedFile.Close()
 
-	err = template.Execute(generatedFile, album)
+	err = parsed.Execute(generatedFile, album)
 	if err != nil {
 		return err
 	}
