@@ -16,4 +16,11 @@ test:
 galleries: build
 	build/albums --albums ~/dropbox/personal/jacoblewallen.com/content/albums
 
+generate: galleries
+	rm -rf jacoblewallen.com/public
+	cd jacoblewallen.com && hugo
+
+upload:
+	rsync -vua --delete jacoblewallen.com/public/ espial.me:live/public/
+
 .PHONY: docker clean build galleries
