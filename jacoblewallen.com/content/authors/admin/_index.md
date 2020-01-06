@@ -23,8 +23,8 @@ bio: My interests include programming, electronics, music, woodworking and photo
 interests:
 - Programming
 - Electronics
-- Music
 - Woodworking
+- Music
 - Photography
 
 education:
@@ -63,4 +63,5 @@ email: ""
 # - Visitors
 ---
 
-This is a work in progress. To be fair, I think the interests below sum things up sufficiently.
+This is a work in progress. Ideally, there would be more here, in this
+paragraph, especially.
