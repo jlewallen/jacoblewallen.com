@@ -6,7 +6,7 @@ pushd ..
 
 source private.env
 
-for pf in `ls jacoblewallen.com/public/albums/*.html`; do
+for pf in `find jacoblewallen.com/public/albums/ -iname "*.html"`; do
 	echo $pf
 
 	build/secure --passphrase ${PASSPHRASE} --plaintext $pf --ciphertext $pf.aes
