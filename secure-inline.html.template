@@ -1,0 +1,17 @@
+<div>
+	<div class="encrypted-form" style="display: none;">
+        <hr class="encrypted-hr">
+
+        <form id="encrypted-form" action="#" method="post">
+            <input id="encrypted-password" type="password" name="password" placeholder="passphrase" autofocus/>
+            <input type="SUBMIT" class="encrypted-decrypt-button" value="DECRYPT"/>
+        </form>
+    </div>
+	<script>
+		const encrypted = '{{ .Ciphertext }}';
+
+		document.addEventListener("DOMContentLoaded", function() {
+			new SecureBlock($('.jlewallen-page-body'), encrypted).unlock();
+		});
+	</script>
+</div>

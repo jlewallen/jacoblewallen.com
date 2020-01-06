@@ -160,7 +160,7 @@ link_authors = false
 
 # Load JS plugins
 #   E.g. To load `/assets/js/custom.js`, set `plugins_js = ["custom"]`.
-plugins_js = [ "crypto-js.min" ]
+plugins_js = [ "crypto-js.min", "secure" ]
 
 # Available address formats.
 [address_formats]

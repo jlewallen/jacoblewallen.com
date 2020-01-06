@@ -4,17 +4,19 @@ import (
 	"bytes"
 	"errors"
 	"flag"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
-
-	"io"
+	"strings"
 
 	"encoding/base64"
 	"encoding/hex"
 
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 
 	"crypto/aes"
 	"crypto/cipher"
@@ -40,6 +42,7 @@ type Options struct {
 	Ciphertext string
 	Passphrase string
 	Title      string
+	Inline     bool
 }
 
 func generateRandomBytes(n int) ([]byte, error) {
@@ -171,6 +174,7 @@ func main() {
 	flag.StringVar(&o.Ciphertext, "ciphertext", "", "ciphertext")
 	flag.StringVar(&o.Passphrase, "passphrase", "", "passphrase")
 	flag.StringVar(&o.Title, "title", "", "title")
+	flag.BoolVar(&o.Inline, "inline", false, "inline")
 
 	flag.Parse()
 
@@ -179,30 +183,40 @@ func main() {
 		os.Exit(2)
 	}
 
-	if o.Title == "" {
+	if o.Inline {
 		d, err := ioutil.ReadFile(o.Plaintext)
 		if err != nil {
 			panic(err)
 		}
 
-		title, found := FindHtmlTitle(bytes.NewReader(d))
-		if found {
-			log.Printf("found title '%s'", title)
-		} else {
-			log.Printf("unable to find title")
+		err = SecureInline(bytes.NewReader(d), o.Passphrase, o.Ciphertext)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		if o.Title == "" {
+			d, err := ioutil.ReadFile(o.Plaintext)
+			if err != nil {
+				panic(err)
+			}
+
+			title, err := FindHtmlTitle(bytes.NewReader(d))
+			if err != nil {
+				panic(err)
+			}
+
+			o.Title = title
 		}
 
-		o.Title = title
-	}
+		ciphertext, err := signAndEncryptFile(o.Passphrase, o.Plaintext)
+		if err != nil {
+			panic(err)
+		}
 
-	ciphertext, err := signAndEncryptFile(o.Passphrase, o.Plaintext)
-	if err != nil {
-		panic(err)
-	}
-
-	err = generateDecryptor(ciphertext, o.Title, o.Ciphertext)
-	if err != nil {
-		panic(err)
+		err = generateDecryptor(ciphertext, o.Title, o.Ciphertext)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -225,11 +239,134 @@ func findTitleTraverse(n *html.Node) (string, bool) {
 	return "", false
 }
 
-func FindHtmlTitle(r io.Reader) (string, bool) {
+func FindHtmlTitle(r io.Reader) (string, error) {
 	doc, err := html.Parse(r)
 	if err != nil {
-		panic("Fail to parse html")
+		return "", err
 	}
 
-	return findTitleTraverse(doc)
+	title, ok := findTitleTraverse(doc)
+	if !ok {
+		return "", fmt.Errorf("unable to find title")
+	}
+
+	return title, nil
+}
+
+func ApplyInlineDecryptorTemplate(w io.Writer, ciphertext string) error {
+	templateName := "secure-inline.html.template"
+	templateData, err := ioutil.ReadFile(templateName)
+	if err != nil {
+		return err
+	}
+	template, err := texttemplate.New(templateName).Parse(string(templateData))
+	if err != nil {
+		return err
+	}
+	data := &EncryptedData{
+		Ciphertext: ciphertext,
+	}
+
+	err = template.Execute(w, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SecureInline(r io.Reader, passphrase, path string) error {
+	doc, err := html.Parse(r)
+	if err != nil {
+		return err
+	}
+
+	bodyNode, err := FindNodeWithClass(doc, "jlewallen-page-body")
+	if err != nil {
+		log.Printf("unable to find jlewallen-page-body")
+		return nil
+	}
+
+	renderedBody := renderNode(bodyNode)
+
+	signedCiphertext, err := signAndEncrypt(passphrase, []byte(renderedBody))
+	if err != nil {
+		return err
+	}
+
+	var buf bytes.Buffer
+	err = ApplyInlineDecryptorTemplate(&buf, string(signedCiphertext))
+	if err != nil {
+		return err
+	}
+
+	// Now we parse the template output into a fragment and replace
+	// the old body with this new part, writing the file out.
+
+	parseCtx := &html.Node{
+		Type:     html.ElementNode,
+		Data:     "body",
+		DataAtom: atom.Body,
+	}
+
+	pf, err := html.ParseFragment(&buf, parseCtx)
+	if err != nil {
+		return err
+	}
+
+	bodyNode.FirstChild = pf[0]
+	bodyNode.LastChild = pf[0]
+
+	generatedFile, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+
+	defer generatedFile.Close()
+
+	html.Render(generatedFile, doc)
+
+	return nil
+}
+
+func hasClass(n *html.Node, klass string) bool {
+	for _, attr := range n.Attr {
+		if attr.Key == "class" {
+			return strings.Contains(attr.Val, klass)
+		}
+	}
+	return false
+}
+
+func FindNodeWithClass(doc *html.Node, class string) (*html.Node, error) {
+	var found *html.Node
+	var crawler func(*html.Node)
+
+	crawler = func(node *html.Node) {
+		if node.Type == html.ElementNode && (node.Data == "div" || node.Data == "article") {
+			if hasClass(node, class) {
+				found = node
+				return
+			}
+		}
+
+		for child := node.FirstChild; child != nil; child = child.NextSibling {
+			crawler(child)
+		}
+	}
+
+	crawler(doc)
+
+	if found != nil {
+		return found, nil
+	}
+
+	return nil, errors.New("missing body node in the tree")
+}
+
+func renderNode(n *html.Node) string {
+	var buf bytes.Buffer
+	w := io.Writer(&buf)
+	html.Render(w, n)
+	return buf.String()
 }
