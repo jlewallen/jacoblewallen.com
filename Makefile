@@ -20,6 +20,7 @@ galleries: build
 generate: galleries
 	rm -rf jacoblewallen.com/public
 	cd jacoblewallen.com && hugo
+	cd jacoblewallen.com && ../tools/postprocess.sh
 
 upload:
 	rsync -vua --delete jacoblewallen.com/public/ espial.me:live/public/
