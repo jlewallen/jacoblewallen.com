@@ -8,12 +8,13 @@ import (
 	"log"
 	"os"
 
-	_ "io"
+	"io"
 
 	"encoding/base64"
 	"encoding/hex"
 
 	"golang.org/x/crypto/pbkdf2"
+	"golang.org/x/net/html"
 
 	"crypto/aes"
 	"crypto/cipher"
@@ -36,6 +37,7 @@ var (
 
 type Options struct {
 	Plaintext  string
+	Ciphertext string
 	Passphrase string
 	Title      string
 }
@@ -166,20 +168,68 @@ func main() {
 	o := &Options{}
 
 	flag.StringVar(&o.Plaintext, "plaintext", "", "plaintext")
+	flag.StringVar(&o.Ciphertext, "ciphertext", "", "ciphertext")
 	flag.StringVar(&o.Passphrase, "passphrase", "", "passphrase")
 	flag.StringVar(&o.Title, "title", "", "title")
 
 	flag.Parse()
+
+	if o.Plaintext == "" || o.Ciphertext == "" || o.Passphrase == "" {
+		flag.Usage()
+		os.Exit(2)
+	}
+
+	if o.Title == "" {
+		d, err := ioutil.ReadFile(o.Plaintext)
+		if err != nil {
+			panic(err)
+		}
+
+		title, found := FindHtmlTitle(bytes.NewReader(d))
+		if found {
+			log.Printf("found title '%s'", title)
+		} else {
+			log.Printf("unable to find title")
+		}
+
+		o.Title = title
+	}
 
 	ciphertext, err := signAndEncryptFile(o.Passphrase, o.Plaintext)
 	if err != nil {
 		panic(err)
 	}
 
-	err = generateDecryptor(ciphertext, o.Title, "secure.html")
+	err = generateDecryptor(ciphertext, o.Title, o.Ciphertext)
 	if err != nil {
 		panic(err)
 	}
+}
 
-	log.Printf("done")
+func isTitleElement(n *html.Node) bool {
+	return n.Type == html.ElementNode && n.Data == "title"
+}
+
+func findTitleTraverse(n *html.Node) (string, bool) {
+	if isTitleElement(n) {
+		return n.FirstChild.Data, true
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		result, ok := findTitleTraverse(c)
+		if ok {
+			return result, ok
+		}
+	}
+
+	return "", false
+}
+
+func FindHtmlTitle(r io.Reader) (string, bool) {
+	doc, err := html.Parse(r)
+	if err != nil {
+		panic("Fail to parse html")
+	}
+
+	return findTitleTraverse(doc)
 }
