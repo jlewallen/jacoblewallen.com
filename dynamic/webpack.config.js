@@ -1,18 +1,22 @@
+// webpackage.config.js
+
+"use strict";
+
+const { DefinePlugin } = require("webpack");
+const { VueLoaderPlugin } = require("vue-loader");
+
 const path = require("path");
 
+const PUBLIC_PATH = process.env.PUBLIC_PATH || "/";
+
 module.exports = {
-	// mode: "production",
+	devtool: 'inline-source-map',
+	mode: "development",
 	entry: "./app.js",
 	output: {
 		path: path.resolve(__dirname, "public"),
 		filename: "bundle.js"
 	},
-	/*
-	optimization: {
-		usedExports: true,
-	},
-	*/
-	devtool: 'inline-source-map',
 	module: {
 		rules: [
 			{
@@ -20,9 +24,27 @@ module.exports = {
 				use: 'ts-loader',
 				exclude: /node_modules/,
 			},
+            {
+                test: /\.vue$/,
+                use: "vue-loader",
+				exclude: /node_modules/,
+            },
+			{
+				test: /\.css$/,
+				use: [
+					'vue-style-loader',
+					{ loader: 'css-loader', options: { sourceMap: true } },
+				]
+			},
 		],
 	},
 	resolve: {
-		extensions: [ '.tsx', '.ts', '.js' ],
+		extensions: [ '.tsx', '.ts', '.js', '.vue' ],
 	},
+	plugins: [
+		new VueLoaderPlugin(),
+		new DefinePlugin({
+			"process.env.PUBLIC_PATH": JSON.stringify(PUBLIC_PATH)
+		}),
+	]
 };

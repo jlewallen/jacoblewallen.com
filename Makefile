@@ -17,7 +17,14 @@ test:
 galleries: build
 	build/galleries --albums ~/dropbox/personal/jacoblewallen.com/content/albums
 
-generate: galleries
+music:
+
+dynamic:
+	cd dynamic && make
+	cp dynamic/public/bundle.js jacoblewallen.com/static/js/dynamic.js
+	cp dynamic/public/music.css jacoblewallen.com/static/css/
+
+generate: galleries dynamic music
 	rm -rf jacoblewallen.com/public
 	cd jacoblewallen.com && hugo
 	cd jacoblewallen.com && ../tools/postprocess.sh
@@ -25,4 +32,4 @@ generate: galleries
 upload:
 	rsync -vua --delete jacoblewallen.com/public/ espial.me:live/public/
 
-.PHONY: docker clean build galleries
+.PHONY: docker clean build galleries dynamic music

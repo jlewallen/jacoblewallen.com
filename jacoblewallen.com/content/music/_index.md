@@ -1,0 +1,5 @@
+---
+title: Playlists
+---
+
+{{< render-playlists >}}

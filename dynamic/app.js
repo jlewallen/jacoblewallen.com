@@ -1,3 +1,11 @@
-import { Playlists } from './playlists'
+import Vue from 'vue'
 
-new Playlists("#application")
+import { VueMasonryPlugin } from 'vue-masonry'
+
+import Router from './Router'
+
+Vue.use(VueMasonryPlugin)
+
+new Vue({
+	render: h => h(Router)
+}).$mount("#application");
