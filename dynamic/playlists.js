@@ -25,11 +25,13 @@ export class Playlists {
 	playlist(id) {
 		return Promise.all([
 			this._json("/music/folders.json"),
+			this._json("/music/playlists.json"),
 			this._json("/music/playlist-" + id + ".json"),
 		]).then(data => {
 			return {
 				folders: data[0].folders,
-				tracks: data[1]
+				tracks: data[2],
+				playlist: _(data[1].playlists).filter(pl => pl.id == id).first()
 			}
 		});
 	}

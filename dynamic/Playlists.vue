@@ -28,7 +28,7 @@ export default {
 	},
 	filters: {
 		prettyTime(value) {
-			return moment(value).format("MMM Do YY");
+			return moment(value).format("MMM Do YYYY");
 		}
 	},
 	methods: {
