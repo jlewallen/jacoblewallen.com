@@ -1,7 +1,10 @@
 <!-- Router.vue -->
 
 <template>
-<component :is="visible" :query="query"></component>
+	<div>
+		{{ url }}
+		<component :is="visible" :query="query" @navigate="handleNavigate"></component>
+	</div>
 </template>
 
 <script>
@@ -9,32 +12,47 @@ import Playlists from "./Playlists"
 import Playlist from "./Playlist"
 import Router from "./Router"
 
-function test() {
+function parseQuery(queryString) {
+	const query = {}
+	const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&')
+	for (let i = 0; i < pairs.length; i++) {
+		const pair = pairs[i].split('=')
+		query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '')
+	}
+	return query
 }
 
 export default {
 	data() {
-		function parseQuery(queryString) {
-			const query = {}
-			const pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&')
-			for (let i = 0; i < pairs.length; i++) {
-				const pair = pairs[i].split('=')
-				query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '')
-			}
-			return query
-		}
+		console.log("data", navigator)
 
 		return {
 			path: window.location.pathname,
-			query: parseQuery(window.location.search)
+			rawQuery: window.location.search,
 		};
 	},
+	methods: {
+		handleNavigate(url) {
+			console.log("navigate", url)
+			history.pushState({}, '', url)
+			this.rawQuery = url
+		}
+	},
 	computed: {
+		query() {
+			return parseQuery(this.rawQuery)
+		},
 		visible() {
-			if (this.query.id) {
+			const query = parseQuery(this.rawQuery)
+			if (query.id) {
 				return Playlist
 			}
 			return Playlists
+		}
+	},
+	created() {
+		window.onpopstate = function(event) {
+			console.log("location: " + document.location + ", state: " + JSON.stringify(event.state))
 		}
 	}
 };
