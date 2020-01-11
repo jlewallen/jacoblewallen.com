@@ -1,38 +1,46 @@
 import _ from 'lodash'
 import moment from 'moment'
 
+let $foldersAndPlaylists = null
+
 export class Playlists {
 	constructor() {
 	}
 
+	foldersAndPlaylists() {
+		if ($foldersAndPlaylists == null) {
+			$foldersAndPlaylists = Promise.all([
+				this._json("/music/folders.json"),
+				this._json("/music/playlists.json"),
+			])
+		}
+
+		return $foldersAndPlaylists
+	}
+
 	playlists() {
-		return Promise.all([
-			this._json("/music/folders.json"),
-			this._json("/music/playlists.json"),
-		]).then(data => {
+		return this.foldersAndPlaylists().then(data => {
 			console.log(data)
 			return {
 				folders: data[0].folders,
 				playlists: data[1].playlists,
 				sorted: this.sortIntoFolders(data[0].folders, data[1].playlists),
-			};
+			}
 		}).then(data => {
 			console.log(data)
 			return data.sorted
-		});
+		})
 	}
 
 	playlist(id) {
-		return Promise.all([
-			this._json("/music/folders.json"),
-			this._json("/music/playlists.json"),
-			this._json("/music/playlist-" + id + ".json"),
-		]).then(data => {
-			return {
-				folders: data[0].folders,
-				tracks: data[2],
-				playlist: _(data[1].playlists).filter(pl => pl.id == id).first()
-			}
+		return this.foldersAndPlaylists().then(data => {
+			return this._json("/music/playlist-" + id + ".json").then(tracks => {
+				return {
+					folders: data[0].folders,
+					playlist: _(data[1].playlists).filter(pl => pl.id == id).first(),
+					tracks: tracks,
+				}
+			})
 		});
 	}
 
@@ -49,15 +57,15 @@ export class Playlists {
 				}
 				return _(folder.pattern).some(pattern => {
 					return playlist.name.match(pattern)
-				});
+				})
 			}).first().name
-		});
+		})
 	}
 
 	decoratePlaylist(playlist) {
 		return _.merge(playlist, {
 			recentlyModified: playlist.lastModified && moment(playlist.lastModified).isAfter(moment().subtract(7, 'days')),
-		});
+		})
 	}
 
 	sortFolderPlaylists(folder, playlists) {
@@ -100,7 +108,7 @@ export class Playlists {
 
 		return {
 			folders: foldersWithPlaylists
-		};
+		}
 	}
 
 }
