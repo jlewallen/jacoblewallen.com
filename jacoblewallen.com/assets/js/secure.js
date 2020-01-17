@@ -43,28 +43,28 @@ class SecureBlock {
 		return false;
 	}
 
-    decrypt(encrypted, passphrase) {
-        const salt = CryptoJS.enc.Hex.parse(encrypted.substr(0, 32));
-        const iv = CryptoJS.enc.Hex.parse(encrypted.substr(32, 32))
-        const ciphertext = encrypted.substring(64);
+	decrypt(encrypted, passphrase) {
+		const salt = CryptoJS.enc.Hex.parse(encrypted.substr(0, 32));
+		const iv = CryptoJS.enc.Hex.parse(encrypted.substr(32, 32))
+		const ciphertext = encrypted.substring(64);
 
 		const keySize = 256;
 		const iterations = 4096;
-        const key = CryptoJS.PBKDF2(passphrase, salt, {
-            keySize: keySize / 32,
-            iterations: iterations
-        });
+		const key = CryptoJS.PBKDF2(passphrase, salt, {
+			keySize: keySize / 32,
+			iterations: iterations
+		});
 
-        const decrypted = CryptoJS.AES.decrypt(ciphertext, key, {
-            iv: iv,
-            padding: CryptoJS.pad.Pkcs7,
-            mode: CryptoJS.mode.CBC
-        });
+		const decrypted = CryptoJS.AES.decrypt(ciphertext, key, {
+			iv: iv,
+			padding: CryptoJS.pad.Pkcs7,
+			mode: CryptoJS.mode.CBC
+		});
 
 		const utf8 = decrypted.toString(CryptoJS.enc.Utf8);
 
-        return utf8;
-    }
+		return utf8;
+	}
 
 	verifyAndDecrypt(encrypted, passphrase) {
 		const encryptedHMAC = encrypted.substring(0, 64);
@@ -74,7 +74,7 @@ class SecureBlock {
 
 		if (decryptedHMAC !== encryptedHMAC) {
 			return null;
-        }
+		}
 
 		return this.decrypt(encryptedHTML, passphrase);
 	}
