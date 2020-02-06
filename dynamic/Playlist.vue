@@ -1,3 +1,5 @@
+<!-- Playlist.vue -->
+
 <template>
 <div class="playlist container">
 	<div class="header row">
@@ -77,7 +79,7 @@ export default {
 		},
 		openPlaylists(ev) {
 			ev.preventDefault()
-			this.$emit('navigate', '')
+			this.$emit('navigate', '?')
 		}
 	}
 }
