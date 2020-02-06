@@ -109,6 +109,7 @@ export class Playlists {
                     subscribed: config.subscribed,
                     order: config.order,
                     name: config.name,
+                    visible: config.visible,
                     reduced: true,
                     playlists: this.sortFolderPlaylists(config, byFolder[config.name]),
                 }
