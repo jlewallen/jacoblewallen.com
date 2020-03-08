@@ -2,7 +2,6 @@
 
 <template>
     <div>
-        {{ url }}
         <component :is="visible" :query="query" @navigate="handleNavigate"></component>
     </div>
 </template>

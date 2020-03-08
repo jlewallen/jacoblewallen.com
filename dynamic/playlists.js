@@ -122,4 +122,26 @@ export class Playlists {
             folders: foldersWithPlaylists,
         }
     }
+
+    search(query) {
+        return fetch('/api/music/search?q=' + query)
+            .then(response => response.json())
+            .then(d => {
+                return _(d.matches)
+                    .groupBy(k => k.track.id)
+                    .mapValues(values => {
+                        const track = values[0].track
+                        return _.extend(track, {
+                            playlists: _(values)
+                                .map(k => k.playlist)
+                                .value(),
+                        })
+                    })
+                    .values()
+                    .value()
+            })
+            .then(d => {
+                return d
+            })
+    }
 }
