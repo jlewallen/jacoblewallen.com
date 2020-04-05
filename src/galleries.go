@@ -118,7 +118,7 @@ func (c *Cache) FindXmp(name string) (string, error) {
 	if c.XmpsByBaseName[base] != "" {
 		return c.XmpsByBaseName[base], nil
 	}
-	return "", fmt.Errorf("unable to find xmp for: %s", name)
+	return "", nil
 }
 
 type Subjects struct {
@@ -248,6 +248,10 @@ func (g *Generator) IncludeImage(path string) error {
 	xmpPath, err := g.Cache.FindXmp(name)
 	if err != nil {
 		return err
+	}
+	if len(xmpPath) == 0 {
+		log.Printf("missing xmp: %v", path)
+		return nil
 	}
 
 	xmp, err := openXmp(xmpPath)

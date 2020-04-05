@@ -1,15 +1,23 @@
 {
-	"sources": [
-		"/home/jlewallen/dropbox/photos/exported/201912"
-	],
-	"library": {
-		"path": "/home/jlewallen/dropbox/photos/library"
-	},
-	"albums": [
-		{
-			"title": "France 2019",
-			"path": "2019_france",
-			"tag": "trips|france"
-		}
-	]
+    "sources": ["/home/jlewallen/dropbox/photos/exported/201912", "/home/jlewallen/dropbox/photos/library/collections"],
+    "library": {
+        "path": "/home/jlewallen/dropbox/photos/library"
+    },
+    "albums": [
+        {
+            "title": "France 2019",
+            "path": "2019_france",
+            "tag": "trips|france"
+        },
+        {
+            "title": "DTC",
+            "path": "2018_dtc",
+            "tag": "build|dtc"
+        },
+        {
+            "title": "Moxon",
+            "path": "2015_moxon",
+            "tag": "build|moxon"
+        }
+    ]
 }
