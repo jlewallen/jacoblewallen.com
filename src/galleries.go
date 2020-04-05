@@ -122,11 +122,11 @@ func (c *Cache) FindXmp(name string) (string, error) {
 }
 
 type Subjects struct {
-	Subjects []string `xml:"Seq>li"`
+	Subjects []string `xml:"Bag>li"`
 }
 
 type HierarchicalSubjects struct {
-	Subjects []string `xml:"Seq>li"`
+	Subjects []string `xml:"Bag>li"`
 }
 
 type RdfRoot struct {
