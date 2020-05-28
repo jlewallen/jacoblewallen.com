@@ -1,5 +1,10 @@
 {
-    "sources": ["/home/jlewallen/dropbox/photos/exported/201912", "/home/jlewallen/dropbox/photos/library/collections"],
+    "sources": [
+        "/home/jlewallen/dropbox/photos/exported/201912",
+        "/home/jlewallen/dropbox/photos/exported/202003",
+        "/home/jlewallen/dropbox/photos/exported/202005",
+        "/home/jlewallen/dropbox/photos/library/collections"
+    ],
     "library": {
         "path": "/home/jlewallen/dropbox/photos/library"
     },
@@ -18,6 +23,11 @@
             "title": "Moxon",
             "path": "2015_moxon",
             "tag": "build|moxon"
+        },
+        {
+            "title": "Los Angeles 2020",
+            "path": "2020_la",
+            "tag": "places|losangeles"
         }
     ]
 }
