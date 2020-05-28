@@ -95,6 +95,16 @@ func (c *Cache) Fill(o *Configuration) error {
 
 	c.XmpsByBaseName = make(map[string]string)
 
+	if err := c.AddExtensions(o, ".arw.xmp"); err != nil {
+		return err
+	}
+	if err := c.AddExtensions(o, ".jpg.xmp"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Cache) AddExtensions(o *Configuration, extension string) error {
 	return filepath.Walk(o.Library.Path, func(path string, info os.FileInfo, e error) error {
 		if e != nil {
 			return e
@@ -102,11 +112,12 @@ func (c *Cache) Fill(o *Configuration) error {
 
 		if info.Mode().IsRegular() {
 			base := removeAllExtensions(info.Name())
-			if strings.HasSuffix(strings.ToLower(info.Name()), ".xmp") {
-				if c.XmpsByBaseName[base] != "" {
-					panic(fmt.Sprintf("already have xmp for base: %s", base))
+			if strings.HasSuffix(strings.ToLower(info.Name()), strings.ToLower(extension)) {
+				if existing, ok := c.XmpsByBaseName[base]; ok {
+					log.Printf("already have xmp for base: %s (%s)", info.Name(), existing)
+				} else {
+					c.XmpsByBaseName[base] = path
 				}
-				c.XmpsByBaseName[base] = path
 			}
 		}
 		return nil
