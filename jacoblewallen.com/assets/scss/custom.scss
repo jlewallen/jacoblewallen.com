@@ -2,6 +2,27 @@ html {
     overflow-y: scroll;
 }
 
+body {
+	background: #edf2f7;
+	// background: #ff0000;
+}
+
+.navbar {
+	background: #edf2f7;
+}
+
+.home-section {
+	background: #edf2f7;
+}
+
+.home-section:nth-of-type(2n) {
+	background: #edf2f7;
+}
+
+.playlists-container .search-header {
+	background: #edf2f7;
+}
+
 .encrypted-hr {
 	margin-top: 20px;
 	margin-bottom: 20px;
