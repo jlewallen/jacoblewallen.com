@@ -23,6 +23,10 @@ import (
 	"github.com/muesli/smartcrop/nfnt"
 )
 
+var (
+	verbose = false
+)
+
 type AlbumFile struct {
 	Name         string
 	OriginalPath string
@@ -114,7 +118,9 @@ func (c *Cache) AddExtensions(o *Configuration, extension string) error {
 			base := removeAllExtensions(info.Name())
 			if strings.HasSuffix(strings.ToLower(info.Name()), strings.ToLower(extension)) {
 				if existing, ok := c.XmpsByBaseName[base]; ok {
-					log.Printf("already have xmp for base: %s (%s)", info.Name(), existing)
+					if verbose {
+						log.Printf("already have xmp for base: %s (%s)", info.Name(), existing)
+					}
 				} else {
 					c.XmpsByBaseName[base] = path
 				}
@@ -261,7 +267,9 @@ func (g *Generator) IncludeImage(path string) error {
 		return err
 	}
 	if len(xmpPath) == 0 {
-		log.Printf("missing xmp: %v", path)
+		if verbose {
+			log.Printf("missing xmp: %v", path)
+		}
 		return nil
 	}
 
@@ -276,7 +284,6 @@ func (g *Generator) IncludeImage(path string) error {
 
 	createdAt := time.Time{}
 	if xmp.Rdf.Description.DateTimeOriginal != "" {
-		// 2019:12:29 10:46:29
 		dto, err := time.Parse("2006:01:02 15:04:05", xmp.Rdf.Description.DateTimeOriginal)
 		if err != nil {
 			return err
@@ -298,7 +305,9 @@ func (g *Generator) IncludeImage(path string) error {
 				Xmp:          xmp,
 			}
 
-			log.Printf("adding to album '%s' (%s) : %v", album.Config.Title, hs, af.PhotoPath)
+			if verbose {
+				log.Printf("adding to album '%s' (%s) : %v", album.Config.Title, hs, af.PhotoPath)
+			}
 
 			album.Files = append(album.Files, af)
 			album.Date = af.CreatedAt
@@ -318,10 +327,12 @@ func (g *Generator) IncludeDirectory(path string) error {
 		if info.Mode().IsRegular() {
 			fileExt := strings.ToLower(filepath.Ext(info.Name()))
 
-			if fileExt == ".jpg" {
-				err := g.IncludeImage(path)
-				if err != nil {
-					return err
+			if !strings.HasSuffix(info.Name(), ".haar.jpg") && !strings.HasSuffix(info.Name(), ".cnn.jpg") {
+				if fileExt == ".jpg" {
+					err := g.IncludeImage(path)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -636,15 +647,17 @@ func (g *Generator) GenerateAlbum(album *Album) error {
 		return err
 	}
 
-	for _, af := range album.Files {
-		err = g.Thumbnails(g.AlbumsRoot, af.OriginalPath, ThumbnailSizes)
-		if err != nil {
-			return err
-		}
+	if true {
+		for _, af := range album.Files {
+			err = g.Thumbnails(g.AlbumsRoot, af.OriginalPath, ThumbnailSizes)
+			if err != nil {
+				return err
+			}
 
-		err = g.Resize(g.AlbumsRoot, af.OriginalPath)
-		if err != nil {
-			return err
+			err = g.Resize(g.AlbumsRoot, af.OriginalPath)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
