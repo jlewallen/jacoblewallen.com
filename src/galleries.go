@@ -240,11 +240,17 @@ func NewGenerator(configPath, albumsRoot string) (g *Generator, err error) {
 		return nil, err
 	}
 
+	// This scans the library and looks for side car files, then opens
+	// those side car files and tries to find photos that belong in
+	// one of our albums.
 	err = g.Cache.Fill(cfg)
 	if err != nil {
 		return nil, err
 	}
 
+	// This looks at all the sources, which are generally exported
+	// images and tries to see if one of them has a corresponding XMP
+	// that we found earlier.
 	for _, source := range cfg.Sources {
 		err = g.IncludeDirectory(source)
 		if err != nil {
@@ -261,6 +267,9 @@ func (g *Generator) IncludeImage(path string) error {
 		return err
 	}
 
+	// We rely on images having globally unique file names, which is
+	// risky but would be annoying to deal with otherwise. This takes
+	// the base name of the exported image and tries to find it's XMP.
 	name := filepath.Base(path)
 	xmpPath, err := g.Cache.FindXmp(name)
 	if err != nil {
@@ -625,7 +634,7 @@ func (g *Generator) MarkDown(album *Album, path string, templateName string, ove
 }
 
 func (g *Generator) GenerateAlbum(album *Album) error {
-	log.Printf("generating '%s' (%d files) %s", album.Config.Title, len(album.Files), g.AlbumsRoot)
+	log.Printf("generating '%s' (%d files)", album.Config.Title, len(album.Files))
 
 	mdPath := filepath.Join(g.AlbumsRoot, fmt.Sprintf("%s.md", album.Config.PathName))
 	err := g.MarkDown(album, mdPath, "album.md.template", false)

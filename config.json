@@ -1,10 +1,5 @@
 {
-    "sources": [
-        "/home/jlewallen/dropbox/photos/exported/201912",
-        "/home/jlewallen/dropbox/photos/exported/202003",
-        "/home/jlewallen/dropbox/photos/exported/202005",
-        "/home/jlewallen/dropbox/photos/library/collections"
-    ],
+    "sources": ["/home/jlewallen/dropbox/photos/exported", "/home/jlewallen/dropbox/photos/library/collections"],
     "library": {
         "path": "/home/jlewallen/dropbox/photos/library"
     },
