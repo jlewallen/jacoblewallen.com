@@ -281,9 +281,9 @@ func SecureInline(r io.Reader, passphrase, path string) error {
 		return err
 	}
 
-	bodyNode, err := FindNodeWithClass(doc, "jlewallen-page-body")
+	bodyNode, err := FindNodeWithClass(doc, "jlewallen-private-body")
 	if err != nil {
-		log.Printf("unable to find jlewallen-page-body")
+		log.Printf("unable to find jlewallen-private-body")
 		return nil
 	}
 

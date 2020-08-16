@@ -11,7 +11,7 @@
 		const encrypted = '{{ .Ciphertext }}';
 
 		document.addEventListener("DOMContentLoaded", function() {
-			new SecureBlock($('.jlewallen-page-body'), encrypted).unlock();
+			new SecureBlock($('.jlewallen-private-body'), encrypted).unlock();
 		});
 	</script>
 </div>
