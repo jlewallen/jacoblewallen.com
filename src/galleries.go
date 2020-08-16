@@ -277,7 +277,7 @@ func (g *Generator) IncludeImage(path string) error {
 	}
 	if len(xmpPath) == 0 {
 		if verbose {
-			log.Printf("missing xmp: %v", path)
+			log.Printf("missing xmp: %v (%v)", path, name)
 		}
 		return nil
 	}
@@ -707,7 +707,8 @@ func removeAllExtensions(name string) string {
 	for {
 		maybeExt := filepath.Ext(removed)
 		if maybeExt == "" {
-			return removed
+			suffixed := strings.Split(removed, "-")
+			return suffixed[0]
 		}
 		removed = strings.TrimSuffix(removed, maybeExt)
 	}
