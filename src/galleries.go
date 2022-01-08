@@ -55,7 +55,6 @@ type CachedImage struct {
 type Cache struct {
 	XmpsByBaseName map[string]string
 	AllAlbums      []*Album
-	AlbumsByTag    map[string]*Album
 	Images         CachedImage
 }
 
@@ -84,7 +83,6 @@ func (c *Cache) Load(path string) (image.Image, error) {
 
 func (c *Cache) Fill(o *Configuration) error {
 	c.AllAlbums = make([]*Album, 0)
-	c.AlbumsByTag = make(map[string]*Album)
 
 	for _, albumCfg := range o.Albums {
 		album := &Album{
@@ -94,7 +92,6 @@ func (c *Cache) Fill(o *Configuration) error {
 		}
 
 		c.AllAlbums = append(c.AllAlbums, album)
-		c.AlbumsByTag[albumCfg.Tag] = album
 	}
 
 	c.XmpsByBaseName = make(map[string]string)
@@ -301,9 +298,26 @@ func (g *Generator) IncludeImage(path string) error {
 		createdAt = dto
 	}
 
+	tags := make(map[string]bool)
+
 	for _, hs := range xmp.Rdf.Description.HierarchicalSubjects.Subjects {
-		album := g.Cache.AlbumsByTag[hs]
-		if album != nil {
+		tags[hs] = true
+	}
+
+	for _, album := range g.Cache.AllAlbums {
+		matches := true
+
+		for _, tag := range album.Config.Tags {
+			if _, ok := tags[tag]; !ok {
+				if verbose {
+					log.Printf("missing tag %v (%v)", tags, tag)
+				}
+				matches = false
+				break
+			}
+		}
+
+		if matches {
 			af := &AlbumFile{
 				OriginalPath: path,
 				PhotoPath:    name,
@@ -315,13 +329,13 @@ func (g *Generator) IncludeImage(path string) error {
 			}
 
 			if verbose {
-				log.Printf("adding to album '%s' (%s) : %v", album.Config.Title, hs, af.PhotoPath)
+				log.Printf("adding to album '%s' (%v) : %v", album.Config.Title, album.Config.Tags, af.PhotoPath)
 			}
 
 			album.Files = append(album.Files, af)
 			album.Date = af.CreatedAt
-			break
 		}
+
 	}
 
 	return nil
@@ -365,9 +379,9 @@ type LibraryConfig struct {
 }
 
 type AlbumConfig struct {
-	Title    string `json:"title"`
-	PathName string `json:"path"`
-	Tag      string `json:"tag"`
+	Title    string   `json:"title"`
+	PathName string   `json:"path"`
+	Tags     []string `json:"tags"`
 }
 
 func (g *Generator) OpenConfiguration(path string) (*Configuration, error) {

@@ -1,28 +1,48 @@
 {
-    "sources": ["/home/jlewallen/dropbox/photos/exported", "/home/jlewallen/dropbox/photos/library/collections"],
+    "sources": [
+        "/home/jlewallen/sync/photos/exported",
+        "/home/jlewallen/sync/photos/library/collections"
+    ],
     "library": {
-        "path": "/home/jlewallen/dropbox/photos/library"
+        "path": "/home/jlewallen/sync/photos/library"
     },
     "albums": [
         {
             "title": "France 2019",
             "path": "2019_france",
-            "tag": "trips|france"
+            "tags": [
+                "trips|france",
+                "year|2019"
+            ]
         },
         {
             "title": "DTC",
             "path": "2015_dtc",
-            "tag": "build|dtc"
+            "tags": [
+                "build|dtc"
+            ]
         },
         {
             "title": "Moxon",
             "path": "2015_moxon",
-            "tag": "build|moxon"
+            "tags": [
+                "build|moxon"
+            ]
         },
         {
             "title": "Los Angeles 2020",
             "path": "2020_la",
-            "tag": "places|losangeles"
+            "tags": [
+                "places|losangeles"
+            ]
+        },
+        {
+            "title": "France 2021",
+            "path": "2021_france",
+            "tags": [
+                "trips|france",
+                "year|2021"
+            ]
         }
     ]
 }
