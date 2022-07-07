@@ -11,7 +11,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"lodash": "^4.17.15",
-		"moment": "^2.24.0",
+		"moment": "^2.29.4",
 		"vue": "^2.6.11",
 		"vue-masonry": "^0.11.8",
 		"vuejs": "^3.0.1"
