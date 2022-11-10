@@ -38,6 +38,6 @@ test-hugo:
 	cd site-hugo && hugo server
 
 test-zola:
-	cd site-zola && zola server
+	cd site-zola && zola serve
 
 .PHONY: docker clean build galleries dynamic music
