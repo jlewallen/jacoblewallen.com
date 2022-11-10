@@ -6,7 +6,7 @@ build:
 	go build -o build/secure src/secure.go
 
 galleries: build
-	build/galleries --albums ~/dropbox/personal/jacoblewallen.com/content/albums
+	build/galleries --albums ~/sync/personal/jacoblewallen.com/content/albums
 
 # This is only necessary to rebuild the music gallery area, because of how things work.
 dynamic:
