@@ -14,10 +14,16 @@ dynamic:
 	cp dynamic/public/bundle.js jacoblewallen.com/static/js/dynamic.js
 	cp dynamic/public/music.css jacoblewallen.com/static/css/
 
-generate: galleries dynamic
+generate: galleries dynamic generate-hugo generate-zola
+
+generate-hugo:
 	rm -rf jacoblewallen.com/public
 	cd jacoblewallen.com && hugo
 	cd jacoblewallen.com && ../tools/postprocess.sh
+
+generate-zola:
+	rm -rf site/public
+	cd site && zola build
 
 upload:
 	rsync -vua --delete jacoblewallen.com/public/ espial.me:live/public/
