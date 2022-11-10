@@ -6,27 +6,27 @@ build:
 	go build -o build/secure src/secure.go
 
 galleries: build
-	build/galleries --albums ~/sync/personal/jacoblewallen.com/content/albums
+	build/galleries --albums ~/sync/personal/site-hugo/content/albums
 
 # This is only necessary to rebuild the music gallery area, because of how things work.
 dynamic:
 	cd dynamic && make
-	cp dynamic/public/bundle.js jacoblewallen.com/static/js/dynamic.js
-	cp dynamic/public/music.css jacoblewallen.com/static/css/
+	cp dynamic/public/bundle.js site-hugo/static/js/dynamic.js
+	cp dynamic/public/music.css site-hugo/static/css/
 
 generate: galleries dynamic generate-hugo generate-zola
 
 generate-hugo:
-	rm -rf jacoblewallen.com/public
-	cd jacoblewallen.com && hugo
-	cd jacoblewallen.com && ../tools/postprocess.sh
+	rm -rf site-hugo/public
+	cd site-hugo && hugo
+	cd site-hugo && ../tools/postprocess.sh
 
 generate-zola:
-	rm -rf site/public
-	cd site && zola build
+	rm -rf site-zola/public
+	cd site-zola && zola build
 
 upload:
-	rsync -vua --delete jacoblewallen.com/public/ espial.me:live/public/
+	rsync -vua --delete site-hugo/public/ espial.me:live/public/
 
 docker:
 	cd docker && docker build -t jlewallen/personal .
@@ -34,7 +34,10 @@ docker:
 clean:
 	rm -rf node_modules
 
-test:
-	cd jacoblewallen.com && hugo server
+test-hugo:
+	cd site-hugo && hugo server
+
+test-zola:
+	cd site-zola && zola server
 
 .PHONY: docker clean build galleries dynamic music
