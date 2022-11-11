@@ -1,0 +1,35 @@
+@import "../themes/abridge/sass/fonts/Roboto";
+@import "../themes/abridge/sass/imports";
+@import "../themes/abridge/sass/syntax/syntax-abridge";
+
+:root {
+    font-family: Ubuntu, Roboto, Oxygen, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  --f1: rgba(255, 255, 255, 0.56); // Font Color Primary
+  --f2: #ddd;    // Font color Headers
+  --c1: #1d1e20; // Background Color Primary
+  --c2: #222;    // Background Color Secondary
+  --c3: #333;    // Table Rows, Block quote edge, Borders
+  --c4: #888;    // Disabled Buttons, Borders, mark background
+  --a1: #52796f; // link color
+  --a2: #8fbc8f; // link hover/focus color
+  --a3: #52796f; // link h1-h2 hover/focus color
+  --cg: #593;    // ins green, success
+  --cr: #e33;    // del red, errors
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --f1: rgba(0, 0, 0, 0.56); // Font Color Primary
+    --f2: #333;    // Font color Headers
+    --c1: #f5f5f5; // Background Color Primary
+    --c2: #eee;    // Background Color Secondary
+    --c3: #ddd;    // Table Rows, Block quote edge, Borders
+    --c4: #677;    // Disabled Buttons, Borders, mark background
+    --a1: #52796f; // link color
+    --a2: #8fbc8f; // link hover/focus color
+    --a3: #52796f; // link h1-h2 hover/focus color
+    --cg: #373;    // ins green, success
+    --cr: #d33;    // del red, errors
+  }
+}
