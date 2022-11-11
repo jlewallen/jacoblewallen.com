@@ -1,9 +1,9 @@
-default: generate
+default: build generate
 
 build:
 	mkdir -p build
 	go build -o build/galleries src/galleries.go
-	go build -o build/secure src/secure.go
+	go build -o build/secure static-encrypt/secure.go
 
 galleries: build
 	build/galleries --albums ~/sync/personal/site-zola/content/albums
