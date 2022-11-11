@@ -26,7 +26,7 @@ docker:
 	cd docker && docker build -t jlewallen/personal .
 
 clean:
-	rm -rf node_modules site-zola/public
+	rm -rf node_modules site-zola/public build
 
 test:
 	cd site-zola && zola serve
