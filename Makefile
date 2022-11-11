@@ -6,9 +6,9 @@ build:
 	go build -o build/secure src/secure.go
 
 galleries: build
-	build/galleries --albums ~/sync/personal/site-hugo/content/albums
+	build/galleries --albums ~/sync/personal/site-zola/content/albums
 
-generate: galleries generate-zola
+generate: generate-zola
 
 generate-hugo:
 	rm -rf site-hugo/public
