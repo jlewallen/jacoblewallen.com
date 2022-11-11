@@ -3,3 +3,4 @@ node_modules
 private.env
 .hugo_build.lock
 *.swp
+.obsidian
