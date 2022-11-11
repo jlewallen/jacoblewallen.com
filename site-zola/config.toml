@@ -94,19 +94,18 @@ menu_footer = [
 #################
 # Resource Files
 #################
-integrity = true # setting this to false is useful for developing, should normally be true.
-js_bundle = true # multiple javascript files combined into a single file
-js_switcher = false
+integrity = true        # setting this to false is useful for developing, should normally be true.
+js_bundle = false       # multiple javascript files combined into a single file
+js_switcher = true
 js_search_facade = true # Do not load search until user interaction with search.
-# search library to use, valid values are: false, "elasticlunr", "tinysearch", "stork"
-search_library = false
+search_library = false  # search library to use, valid values are: false, "elasticlunr", "tinysearch", "stork"
 
 js_search_index = "search_index.en.js" # Separate Always, generated each build
-js_prestyle = "prestyle.js"# Bundleable - used to preload: FontAwesome, Katex, external Google Fonts
-js_codecopy = "codecopy.js"# Bundleable
-js_email = "email.js"# Bundleable
-#js_theme = "theme.min.js" # Separate Always, comment out if using -auto/-light/-dark stylesheet. (required for switcher)
-js_themeButton = "theme_button.js"# Bundleable
+js_prestyle = "prestyle.js"            # Bundleable - used to preload: FontAwesome, Katex, external Google Fonts
+js_codecopy = "codecopy.js"            # Bundleable
+js_email = "email.js"                  # Bundleable
+js_theme = "theme.min.js"              # Separate Always, comment out if using -auto/-light/-dark stylesheet. (required for switcher)
+js_themeButton = "theme_button.js"     # Bundleable
 
 ########## Switcher ########## (comment this block out if NOT using switcher):
 #stylesheets = [ "abridge-switcher.css" ] # Orange Automatic Dark/Light Theme based on browser/system preference with switcher
