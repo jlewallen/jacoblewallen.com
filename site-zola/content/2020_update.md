@@ -2,7 +2,7 @@
 title = "January 2020 Update"
 date = 2020-01-04T00:00:00-08:00
 draft = false
-authors = ["admin"]
+authors = ["jacob"]
 [taxonomies]
 tags = ["misc"]
 +++

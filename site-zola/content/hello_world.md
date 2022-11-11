@@ -2,7 +2,7 @@
 title = "Hello World"
 date = 2011-02-20T00:00:00-08:00
 draft = false
-authors = ["admin"]
+authors = ["jacob"]
 [taxonomies]
 tags = ["misc"]
 +++

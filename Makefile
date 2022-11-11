@@ -29,6 +29,6 @@ clean:
 	rm -rf node_modules site-zola/public build
 
 test:
-	cd site-zola && zola serve
+	cd site-zola && zola serve --drafts
 
 .PHONY: docker clean build galleries dynamic music

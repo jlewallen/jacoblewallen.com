@@ -2,7 +2,7 @@
 title = "Static Site Encrypted Content"
 date = 2020-01-06T00:00:00-08:00
 draft = false
-authors = ["admin"]
+authors = ["jacob"]
 [taxonomies]
 tags = ["blog", "hugo", "crypto"]
 +++
