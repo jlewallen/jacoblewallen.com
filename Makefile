@@ -28,10 +28,7 @@ docker:
 clean:
 	rm -rf node_modules site-zola/public
 
-test-hugo:
-	cd site-hugo && hugo server
-
-test-zola:
+test:
 	cd site-zola && zola serve
 
 .PHONY: docker clean build galleries dynamic music
